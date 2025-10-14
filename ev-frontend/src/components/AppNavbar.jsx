@@ -75,7 +75,7 @@ export default function AppNavbar() {
 
             <button
               onClick={onLogout}
-              className="rounded-lg bg-gray-900 hover:bg-black text-white px-3 py-2 text-sm"
+              className="rounded-lg bg-red-900 hover:bg-red text-white px-3 py-2 text-sm"
             >
               Logout
             </button>
