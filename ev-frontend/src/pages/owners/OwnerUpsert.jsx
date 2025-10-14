@@ -108,7 +108,7 @@ export default function OwnerUpsert() {
             <button className="rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2" disabled={isSubmitting || loading}>
               {isSubmitting ? "Saving..." : "Save"}
             </button>
-            <button type="button" onClick={() => navigate("/owners")} className="rounded-xl border px-4 py-2">
+            <button type="button" onClick={() => history.back()} className="rounded-xl border px-4 py-2">
               Cancel
             </button>
           </div>

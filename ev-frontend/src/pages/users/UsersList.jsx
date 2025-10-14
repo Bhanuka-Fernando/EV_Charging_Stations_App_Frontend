@@ -1,4 +1,3 @@
-// src/pages/backoffice/UsersList.jsx
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
@@ -19,7 +18,7 @@ function Td({ children, className = "" }) {
 function Chip({ children, color = "gray" }) {
   const map = {
     green: "bg-emerald-100/80 text-emerald-800 border-emerald-200",
-    gray: "bg-gray-100 text-gray-700 border-gray-200",
+    gray: "bg-red-200 text-gray-700 border-black-200",
     blue: "bg-blue-100/80 text-blue-800 border-blue-200",
   };
   return (
@@ -32,7 +31,7 @@ function Chip({ children, color = "gray" }) {
 }
 function IconButton({ children, color = "gray", ...props }) {
   const styles = {
-    gray: "text-gray-600 hover:bg-gray-100",
+    gray: "text-red-600 hover:bg-gray-100",
     blue: "text-blue-600 hover:bg-blue-50",
     emerald: "text-emerald-700 hover:bg-emerald-50",
   };
