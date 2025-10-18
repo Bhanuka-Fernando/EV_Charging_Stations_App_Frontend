@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import usersApi from "../../api/usersApi";
 import bookingsApi from "../../api/bookingsApi";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
 
+/* ---------------- Small UI bits ---------------- */
 function Kpi({ title, primary = "—", secondary = "" }) {
   return (
     <div className="rounded-2xl border bg-white p-5">
@@ -33,7 +33,162 @@ function Badge({ children, color = "gray" }) {
     </span>
   );
 }
+function Detail({ label, value }) {
+  return (
+    <div>
+      <div className="text-xs text-gray-500">{label}</div>
+      <div className="text-sm font-medium text-gray-900 break-words">{value ?? "—"}</div>
+    </div>
+  );
+}
 
+/* ---------------- Booking Details Modal ---------------- */
+function BookingDetailsModal({ open, id, onClose }) {
+  const [loading, setLoading] = useState(false);
+  const [b, setB] = useState(null);
+
+  useEffect(() => {
+    if (!open || !id) return;
+    (async () => {
+      try {
+        setLoading(true);
+        let data;
+        if (typeof bookingsApi.get === "function") data = await bookingsApi.get(id);
+        else if (typeof bookingsApi.details === "function") data = await bookingsApi.details(id);
+        else if (typeof bookingsApi.getById === "function") data = await bookingsApi.getById(id);
+        if (!data) throw new Error("Booking details endpoint not available.");
+        setB(data);
+      } catch (e) {
+        toast.error(e?.response?.data?.message || e?.message || "Failed to load booking");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [open, id]);
+
+  const fmt = (v) => {
+    if (!v) return "—";
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleString();
+  };
+
+  const ownerName =
+    b?.ownerFullName ??
+    b?.ownerName ??
+    b?.owner?.fullName ??
+    b?.ownerNic ?? // fallback to NIC if no name
+    b?.nic ??
+    "—";
+
+  const ownerEmail =
+    b?.ownerEmail ??
+    b?.owner?.email ??
+    b?.email ??
+    b?.ownerEmailAddress ??
+    "—";
+
+  const stationLabel =
+    b?.stationName ??
+    b?.station?.name ??
+    b?.stationCode ??
+    b?.stationId ??
+    "—";
+
+  const slotLabel =
+    b?.slotName ??
+    b?.slotLabel ??
+    b?.slot?.name ??
+    b?.slot?.label ??
+    b?.slotCode ??
+    b?.connectorName ??
+    b?.portName ??
+    b?.slotNumber ??
+    b?.slotNo ??
+    b?.SlotNo ??
+    b?.slotId ??
+    b?.SlotId ??
+    b?.slot ??
+    "—";
+
+  const vehicleLabel =
+    b?.vehicle?.model ??
+    b?.vehicle?.name ??
+    b?.vehicleModel ??
+    b?.vehicleNumber ??
+    b?.licensePlate ??
+    "—";
+
+  const energyLabel = b?.energyKwh ?? b?.energy ?? b?.kwh ?? "—";
+  const priceLabel =
+    b?.price !== undefined
+      ? `LKR ${b.price}`
+      : b?.amount !== undefined
+      ? `LKR ${b.amount}`
+      : "—";
+  const qrOrCode = b?.qrCode ?? b?.code ?? b?.verificationCode ?? "—";
+  const notes = b?.notes ?? b?.remark ?? b?.remarks ?? "—";
+  const status = b?.status ?? b?.Status ?? "—";
+  const created =
+    b?.createdAtUtc ?? b?.createdAt ?? b?.CreatedAtUtc ?? b?.CreatedAt ?? null;
+  const start =
+    b?.startTimeUtc ?? b?.startTime ?? b?.StartTimeUtc ?? b?.StartTime ?? null;
+  const end =
+    b?.endTimeUtc ?? b?.endTime ?? b?.EndTimeUtc ?? b?.EndTime ?? null;
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl border">
+        <div className="px-6 py-4 border-b flex items-center justify-between">
+          <h3 className="font-semibold text-gray-800">
+            {/* Show EV owner’s name in header as requested */}
+            Booking — {ownerName}
+          </h3>
+          <button
+            className="text-xl leading-none text-gray-500 hover:text-gray-800"
+            onClick={onClose}
+          >
+            &times;
+          </button>
+        </div>
+
+        <div className="p-6">
+          {loading && <div className="text-sm text-gray-500">Loading…</div>}
+          {!loading && (
+            <div className="grid md:grid-cols-2 gap-4">
+              <Detail label="Status" value={status} />
+              <Detail label="Created" value={fmt(created)} />
+
+              <Detail label="Owner Name" value={ownerName} />
+              <Detail label="Owner Email" value={ownerEmail} />
+
+              <Detail label="Station" value={stationLabel} />
+              <Detail label="Slot" value={slotLabel} />
+
+              <Detail label="Start" value={fmt(start)} />
+              <Detail label="End" value={fmt(end)} />
+
+              <Detail label="Vehicle" value={vehicleLabel} />
+              <Detail label="Energy (kWh)" value={energyLabel} />
+              <Detail label="Price" value={priceLabel} />
+              <Detail label="QR / Code" value={qrOrCode} />
+              <Detail label="Notes" value={notes} />
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t flex justify-end">
+          <button className="rounded-lg border px-4 py-2 text-sm hover:bg-gray-50" onClick={onClose}>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------ Main Page ------------------------ */
 export default function OperatorBookings() {
   const [stationId, setStationId] = useState("");
   const [rows, setRows] = useState([]);
@@ -50,16 +205,24 @@ export default function OperatorBookings() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  // KPIs (today only)
+  // KPIs
   const [kpi, setKpi] = useState({ pending: 0, approved: 0, completed: 0 });
 
-  const todayYmd = useMemo(() => {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  }, []);
+  // “today” helpers (UTC + Local) with fallback logic
+  const todayUtcYmd = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const todayLocalYmd = useMemo(() => new Date().toLocaleDateString("en-CA"), []);
+  const ymdUTC = (val) => {
+    const d = new Date(val);
+    return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+  };
+  const ymdLocal = (val) => {
+    const d = new Date(val);
+    return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-CA");
+  };
+
+  // view modal state
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewId, setViewId] = useState("");
 
   useEffect(() => {
     const start = new Date();
@@ -95,13 +258,24 @@ export default function OperatorBookings() {
     return Number.isNaN(d.getTime()) ? "—" : d.toLocaleString();
   };
 
-  const isSameDay = (iso) => {
-    if (!iso) return false;
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return false;
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${d.getFullYear()}-${m}-${dd}` === todayYmd;
+  // tolerant slot label for table
+  const toSlotLabel = (b) => {
+    const v =
+      b.slotName ??
+      b.slotLabel ??
+      b.slot?.name ??
+      b.slot?.label ??
+      b.slotCode ??
+      b.connectorName ??
+      b.portName ??
+      b.slotNumber ??
+      b.slotNo ??
+      b.SlotNo ??
+      b.slotId ??
+      b.SlotId ??
+      b.slot ??
+      "";
+    return (v === 0 || v) ? String(v) : "";
   };
 
   async function load() {
@@ -119,20 +293,23 @@ export default function OperatorBookings() {
       const items = Array.isArray(data) ? data : data.items ?? [];
       const tot = Array.isArray(data) ? items.length : data.total ?? items.length;
 
-      const normalized = items.map((b) => ({
-        id: b.id ?? b.Id,
-        status: b.status ?? b.Status,
-        start: b.startTimeUtc ?? b.startTime ?? b.StartTimeUtc ?? b.StartTime,
-        end: b.endTimeUtc ?? b.endTime ?? b.EndTimeUtc ?? b.EndTime,
-        owner:
-          b.ownerFullName ??
-          b.owner?.fullName ??
-          b.ownerName ??
-          b.ownerNic ??
-          b.nic ??
-          "—",
-        slot: b.slotName ?? b.slot ?? b.slotId ?? "",
-      }));
+      const normalized = items
+        .map((b) => ({
+          id: b.id ?? b.Id,
+          stationId: b.stationId ?? b.StationId,
+          status: b.status ?? b.Status,
+          start: b.startTimeUtc ?? b.startTime ?? b.StartTimeUtc ?? b.StartTime,
+          end: b.endTimeUtc ?? b.endTime ?? b.EndTimeUtc ?? b.EndTime,
+          owner:
+            b.ownerFullName ??
+            b.owner?.fullName ??
+            b.ownerName ??
+            b.ownerNic ??
+            b.nic ??
+            "—",
+          slot: toSlotLabel(b),
+        }))
+        .filter((r) => !r.stationId || r.stationId === stationId);
 
       const filtered = slot
         ? normalized.filter((r) => String(r.slot).toLowerCase().includes(slot.toLowerCase()))
@@ -141,12 +318,16 @@ export default function OperatorBookings() {
       setRows(filtered);
       setTotal(tot);
 
-      const todayList = normalized.filter((r) => isSameDay(r.start));
+      // KPIs: try "today" (UTC or local); if empty, fall back to current results
+      const todayList = normalized.filter(
+        (r) => ymdUTC(r.start) === todayUtcYmd || ymdLocal(r.start) === todayLocalYmd
+      );
+      const base = todayList.length ? todayList : normalized;
       const lc = (s) => String(s || "").toLowerCase();
       setKpi({
-        pending: todayList.filter((r) => lc(r.status) === "pending").length,
-        approved: todayList.filter((r) => lc(r.status) === "approved").length,
-        completed: todayList.filter((r) => lc(r.status) === "completed").length,
+        pending: base.filter((r) => lc(r.status) === "pending").length,
+        approved: base.filter((r) => lc(r.status) === "approved").length,
+        completed: base.filter((r) => lc(r.status) === "completed").length,
       });
     } catch (e) {
       toast.error(e?.response?.data?.message || e?.message || "Failed to load bookings");
@@ -193,7 +374,6 @@ export default function OperatorBookings() {
             <p className="text-xs text-gray-500">This station only.</p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Scan / Verify QR removed */}
             <button onClick={load} className="rounded-lg bg-gray-900 text-white px-3 py-2 text-sm hover:bg-black">
               Refresh
             </button>
@@ -323,10 +503,12 @@ export default function OperatorBookings() {
                               Complete
                             </button>
                           )}
-                          <Link to={`/bookings/${b.id}`} className="text-gray-700 hover:underline">
+                          <button
+                            onClick={() => { setViewId(b.id); setViewOpen(true); }}
+                            className="text-gray-700 hover:underline"
+                          >
                             View
-                          </Link>
-                          {/* Scan action removed */}
+                          </button>
                         </Td>
                       </tr>
                     );
@@ -357,6 +539,13 @@ export default function OperatorBookings() {
           </div>
         </div>
       </div>
+
+      {/* Details Modal */}
+      <BookingDetailsModal
+        open={viewOpen}
+        id={viewId}
+        onClose={() => setViewOpen(false)}
+      />
     </div>
   );
 }

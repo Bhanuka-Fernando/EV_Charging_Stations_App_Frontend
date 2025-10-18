@@ -27,7 +27,6 @@ import BookingsList from "./pages/bookings/BookingsList";
 
 // Operator
 import OperatorApprovals from "./pages/operator/OperatorApprovals";
-import OperatorScan from "./pages/operator/operatorScan";
 import OperatorDashboard from "./pages/operator/OperatorDashboard";
 import StationDetails from "./pages/operator/StationDetails";
 import OperatorBookings from "./pages/operator/OperatorBookings";
@@ -74,7 +73,6 @@ const router = createBrowserRouter([
             children: [
               { path: "/operator", element: <OperatorDashboard /> },
               { path: "/operator/approvals", element: <OperatorApprovals /> },
-              { path: "/operator/scan", element: <OperatorScan /> },
 
               // Stations (list + schedule)
               { path: "/stationDetails", element: <StationDetails /> },

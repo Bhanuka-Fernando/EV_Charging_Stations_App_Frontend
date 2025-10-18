@@ -1,3 +1,4 @@
+// src/pages/bookings/BookingsList.jsx
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import bookingsApi from "../../api/bookingsApi";
@@ -5,12 +6,10 @@ import ownersApi from "../../api/ownersApi";
 import stationsApi from "../../api/stationsApi";
 import { useRole } from "../../auth/useRole";
 
-/* ─── Table Helpers ─────────────────────────────── */
+/* ─── Table Helpers (match StationsList) ───────────────────────── */
 function Th({ children, className = "" }) {
   return (
-    <th
-      className={`text-left font-semibold px-5 py-3 border-b text-gray-700 ${className}`}
-    >
+    <th className={`text-left font-semibold px-5 py-3 border-b text-gray-700 ${className}`}>
       {children}
     </th>
   );
@@ -37,7 +36,7 @@ function Badge({ children, color = "gray" }) {
   );
 }
 
-/* ─── Main Component ─────────────────────────────── */
+/* ─── Main Component ───────────────────────────────────────────── */
 export default function BookingsList() {
   const role = useRole();
   const [q, setQ] = useState("");
@@ -69,7 +68,7 @@ export default function BookingsList() {
     return <Badge>—</Badge>;
   };
 
-  /* ─── Fetch Bookings with Owners and Stations ─── */
+  // Fetch bookings + join owners & stations for names
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -89,18 +88,14 @@ export default function BookingsList() {
         status: b.Status || b.status,
       }));
 
-      // normalize owners
-      const owners = Array.isArray(ownersRes.items) ? ownersRes.items : ownersRes;
+      const owners = Array.isArray(ownersRes?.items) ? ownersRes.items : ownersRes || [];
       const ownerMap = {};
       owners.forEach((o) => {
         const nic = String(o.Nic || o.nic || "").trim();
         ownerMap[nic] = o.FullName || o.fullName || "—";
       });
 
-      // normalize stations
-      const stations = Array.isArray(stationsRes.items)
-        ? stationsRes.items
-        : stationsRes;
+      const stations = Array.isArray(stationsRes?.items) ? stationsRes.items : stationsRes || [];
       const stationMap = {};
       stations.forEach((s) => {
         const id = String(s._id || s.id || "").trim();
@@ -128,7 +123,7 @@ export default function BookingsList() {
     fetchData();
   }, []);
 
-  /* ─── Filters ───────────────────────────────────── */
+  // Filters
   const filtered = rows.filter((b) => {
     const qLower = q.toLowerCase();
     const matchesQuery =
@@ -148,7 +143,7 @@ export default function BookingsList() {
     return matchesQuery && matchesStatus && matchesDate;
   });
 
-  /* ─── Render ────────────────────────────────────── */
+  /* ─── Render (styled like StationsList) ───────────────────────── */
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
       <Toaster />
@@ -156,56 +151,52 @@ export default function BookingsList() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
-              Bookings
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              View, filter, and search all bookings easily.
-            </p>
+            <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Bookings</h1>
+            <p className="text-sm text-gray-500 mt-1">View, filter, and search all bookings easily.</p>
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Filters (same card layout/spacing as StationsList) */}
         <div className="rounded-2xl bg-white/80 backdrop-blur-sm p-5 shadow-sm border border-gray-200 mb-6">
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search by Booking ID / NIC / Station / Owner"
-              className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            >
-              <option>All</option>
-              <option>Pending</option>
-              <option>Approved</option>
-              <option>Completed</option>
-              <option>Cancelled</option>
-            </select>
-            <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by Booking ID / NIC / Station / Owner"
+                className="w-80 rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              >
+                <option>All</option>
+                <option>Pending</option>
+                <option>Approved</option>
+                <option>Completed</option>
+                <option>Cancelled</option>
+              </select>
               <input
                 type="datetime-local"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
-                className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[190px]"
+                className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[220px]"
               />
               <input
                 type="datetime-local"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[190px]"
+                className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[220px]"
               />
             </div>
-          </div>
-          <div className="mt-3 text-sm text-gray-500">
-            {loading ? "Loading…" : `${filtered.length} of ${total} shown`}
+            <div className="text-sm text-gray-500">
+              {loading ? "Loading…" : `${filtered.length} of ${total} shown`}
+            </div>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table (same container styling) */}
         <div className="overflow-hidden rounded-2xl bg-white shadow-md border border-gray-200">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-700">
