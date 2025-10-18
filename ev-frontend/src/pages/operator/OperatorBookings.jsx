@@ -1,3 +1,4 @@
+// src/pages/operator/OperatorBookings.jsx
 import { useEffect, useMemo, useState } from "react";
 import usersApi from "../../api/usersApi";
 import bookingsApi from "../../api/bookingsApi";
@@ -192,9 +193,7 @@ export default function OperatorBookings() {
             <p className="text-xs text-gray-500">This station only.</p>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/operator/scan" className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50">
-              Scan / Verify QR
-            </Link>
+            {/* Scan / Verify QR removed */}
             <button onClick={load} className="rounded-lg bg-gray-900 text-white px-3 py-2 text-sm hover:bg-black">
               Refresh
             </button>
@@ -210,54 +209,54 @@ export default function OperatorBookings() {
 
         {/* Filters */}
         <div className="rounded-2xl border bg-white p-3 mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
             <div>
-            <label className="block text-xs text-gray-500 mb-1">Date from</label>
-            <input
+              <label className="block text-xs text-gray-500 mb-1">Date from</label>
+              <input
                 type="date"
                 className="w-full rounded-lg border px-3 py-2"
                 value={from}
                 onChange={(e) => { setPage(1); setFrom(e.target.value); }}
-            />
+              />
             </div>
 
             <div>
-            <label className="block text-xs text-gray-500 mb-1">Date to</label>
-            <input
+              <label className="block text-xs text-gray-500 mb-1">Date to</label>
+              <input
                 type="date"
                 className="w-full rounded-lg border px-3 py-2"
                 value={to}
                 onChange={(e) => { setPage(1); setTo(e.target.value); }}
-            />
+              />
             </div>
 
             <div>
-            <label className="block text-xs text-gray-500 mb-2">Status</label>
-            <select
+              <label className="block text-xs text-gray-500 mb-2">Status</label>
+              <select
                 className="w-full rounded-lg border px-3 py-2"
                 value={status}
                 onChange={(e) => { setPage(1); setStatus(e.target.value); }}
-            >
+              >
                 {["All", "Pending", "Approved", "Completed", "Cancelled"].map(s => (
-                <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s}>{s}</option>
                 ))}
-            </select>
+              </select>
             </div>
 
             <div>
-            <label className="block text-xs text-gray-500 mb-2">Slot</label>
-            <input
+              <label className="block text-xs text-gray-500 mb-2">Slot</label>
+              <input
                 className="w-full rounded-lg border px-3 py-2"
                 placeholder="Filter by slot…"
                 value={slot}
                 onChange={(e) => setSlot(e.target.value)}
                 list="slotOptions"
-            />
-            <datalist id="slotOptions">
+              />
+              <datalist id="slotOptions">
                 {distinctSlots.map((s) => <option key={s} value={s} />)}
-            </datalist>
+              </datalist>
             </div>
-        </div>
+          </div>
         </div>
 
         {/* Table */}
@@ -327,9 +326,7 @@ export default function OperatorBookings() {
                           <Link to={`/bookings/${b.id}`} className="text-gray-700 hover:underline">
                             View
                           </Link>
-                          <Link to="/operator/scan" className="text-gray-700 hover:underline">
-                            Scan
-                          </Link>
+                          {/* Scan action removed */}
                         </Td>
                       </tr>
                     );

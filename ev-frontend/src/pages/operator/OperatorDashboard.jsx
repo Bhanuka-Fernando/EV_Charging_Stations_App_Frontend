@@ -1,3 +1,4 @@
+// src/pages/operator/OperatorDashboard.jsx
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
@@ -103,12 +104,9 @@ export default function OperatorDashboard() {
         const toLower = (s) => String(s || "").toLowerCase();
         setKpi((k) => ({
           ...k,
-          pending: normalized.filter((b) => toLower(b.status) === "pending")
-            .length,
-          approved: normalized.filter((b) => toLower(b.status) === "approved")
-            .length,
-          completed: normalized.filter((b) => toLower(b.status) === "completed")
-            .length,
+          pending: normalized.filter((b) => toLower(b.status) === "pending").length,
+          approved: normalized.filter((b) => toLower(b.status) === "approved").length,
+          completed: normalized.filter((b) => toLower(b.status) === "completed").length,
         }));
       } catch (e) {
         toast.error(e?.message || "Failed to load bookings");
@@ -151,7 +149,7 @@ export default function OperatorDashboard() {
               color="emerald"
               label="Pending Approvals"
             />
-            <ActionBtn to="/operator/scan" color="blue" label="Scan QR" />
+            {/* Scan QR removed */}
           </div>
         </div>
 
@@ -249,14 +247,7 @@ export default function OperatorDashboard() {
                               Approve
                             </Link>
                           )}
-                          {st === "approved" && (
-                            <Link
-                              to="/operator/scan"
-                              className="text-emerald-700 hover:underline"
-                            >
-                              Finalize
-                            </Link>
-                          )}
+                          {/* Finalize action (Scan) removed */}
                         </Td>
                       </tr>
                     );
