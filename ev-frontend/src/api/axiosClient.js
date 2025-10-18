@@ -5,7 +5,7 @@ const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.request.use((config) => {
-  const t = localStorage.getItem("token"); // ✅ align with AuthContext
+  const t = localStorage.getItem("token"); // align with AuthContext
   if (t) config.headers.Authorization = `Bearer ${t}`;
   return config;
 });

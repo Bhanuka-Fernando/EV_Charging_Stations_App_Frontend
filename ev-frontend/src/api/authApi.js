@@ -1,17 +1,16 @@
 import axiosClient from "./axiosClient";
 
 const USE_SINGLE_REGISTER_ENDPOINT = false;
-const REGISTER_PATH = "/auth/register"; // only used if flag is true
-
+const REGISTER_PATH = "/auth/register";
 // --- Auth ---
 function login(payload) {
-  // { username, password } -> { token }
+  
   return axiosClient.post("/auth/login", payload).then((r) => r.data);
 }
 
-// Backoffice registration (requires Backoffice JWT)
+
 function registerBackoffice(payload) {
-  // payload contains { fullName, email, password, role }, but server only needs email/password
+  
   if (USE_SINGLE_REGISTER_ENDPOINT) {
     return axiosClient
       .post(REGISTER_PATH, { email: payload.email, password: payload.password, role: "Backoffice" })
