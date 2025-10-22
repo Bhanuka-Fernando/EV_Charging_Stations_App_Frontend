@@ -1,3 +1,4 @@
+// src/pages/bookings/BookingsList.jsx
 import { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import bookingsApi from "../../api/bookingsApi";
@@ -5,11 +6,10 @@ import ownersApi from "../../api/ownersApi";
 import stationsApi from "../../api/stationsApi";
 import { useRole } from "../../auth/useRole";
 
+/* ─── Table Helpers (match StationsList) ───────────────────────── */
 function Th({ children, className = "" }) {
   return (
-    <th
-      className={`text-left font-semibold px-5 py-3 border-b text-gray-700 ${className}`}
-    >
+    <th className={`text-left font-semibold px-5 py-3 border-b text-gray-700 ${className}`}>
       {children}
     </th>
   );
@@ -36,6 +36,7 @@ function Badge({ children, color = "gray" }) {
   );
 }
 
+/* ─── Main Component ───────────────────────────────────────────── */
 export default function BookingsList() {
   const role = useRole();
   const [q, setQ] = useState("");
@@ -67,9 +68,11 @@ export default function BookingsList() {
     return <Badge>—</Badge>;
   };
 
+  // Fetch bookings + join owners & stations for names
   const fetchData = async () => {
     try {
       setLoading(true);
+
       const [bookRes, ownersRes, stationsRes] = await Promise.all([
         bookingsApi.list({ pageSize: 1000 }),
         ownersApi.list({ pageSize: 1000 }),
@@ -85,16 +88,14 @@ export default function BookingsList() {
         status: b.Status || b.status,
       }));
 
-      const owners = Array.isArray(ownersRes.items) ? ownersRes.items : ownersRes;
+      const owners = Array.isArray(ownersRes?.items) ? ownersRes.items : ownersRes || [];
       const ownerMap = {};
       owners.forEach((o) => {
         const nic = String(o.Nic || o.nic || "").trim();
         ownerMap[nic] = o.FullName || o.fullName || "—";
       });
 
-      const stations = Array.isArray(stationsRes.items)
-        ? stationsRes.items
-        : stationsRes;
+      const stations = Array.isArray(stationsRes?.items) ? stationsRes.items : stationsRes || [];
       const stationMap = {};
       stations.forEach((s) => {
         const id = String(s._id || s.id || "").trim();
@@ -111,6 +112,7 @@ export default function BookingsList() {
       setRows(enriched);
       setTotal(enriched.length);
     } catch (err) {
+      console.error("Error fetching bookings:", err);
       toast.error(err.message || "Failed to load bookings");
     } finally {
       setLoading(false);
@@ -121,6 +123,7 @@ export default function BookingsList() {
     fetchData();
   }, []);
 
+  // Filters
   const filtered = rows.filter((b) => {
     const qLower = q.toLowerCase();
     const matchesQuery =
@@ -129,70 +132,71 @@ export default function BookingsList() {
       b.ownerNic?.toLowerCase().includes(qLower) ||
       b.ownerName?.toLowerCase().includes(qLower) ||
       b.stationName?.toLowerCase().includes(qLower);
+
     const matchesStatus =
       status === "All" || String(b.status).toLowerCase() === status.toLowerCase();
+
     const matchesDate =
       (!from || new Date(b.startTime) >= new Date(from)) &&
       (!to || new Date(b.endTime) <= new Date(to));
+
     return matchesQuery && matchesStatus && matchesDate;
   });
 
+  /* ─── Render (styled like StationsList) ───────────────────────── */
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
       <Toaster />
       <div className="max-w-7xl mx-auto px-6 py-10">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-semibold text-gray-900">Bookings</h1>
-            <p className="text-sm text-gray-500 mt-1">
-              View, filter, and search all bookings easily.
-            </p>
+            <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">Bookings</h1>
+            <p className="text-sm text-gray-500 mt-1">View, filter, and search all bookings easily.</p>
           </div>
         </div>
 
-        {/* Filters (Compact Layout) */}
-        <div className="rounded-2xl bg-white p-4 shadow-sm border border-gray-200 mb-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search by Booking ID / NIC / Station / Owner"
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[260px]"
-            />
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[150px]"
-            >
-              <option>All</option>
-              <option>Pending</option>
-              <option>Approved</option>
-              <option>Completed</option>
-              <option>Cancelled</option>
-            </select>
-            <div className="flex items-center gap-2">
+        {/* Filters (same card layout/spacing as StationsList) */}
+        <div className="rounded-2xl bg-white/80 backdrop-blur-sm p-5 shadow-sm border border-gray-200 mb-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by Booking ID / NIC / Station / Owner"
+                className="w-80 rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              >
+                <option>All</option>
+                <option>Pending</option>
+                <option>Approved</option>
+                <option>Completed</option>
+                <option>Cancelled</option>
+              </select>
               <input
                 type="datetime-local"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[190px]"
+                className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[220px]"
               />
-              <span className="text-gray-400 text-sm">to</span>
               <input
                 type="datetime-local"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[190px]"
+                className="rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none w-[220px]"
               />
             </div>
-            <div className="ml-auto text-sm text-gray-500">
+            <div className="text-sm text-gray-500">
               {loading ? "Loading…" : `${filtered.length} of ${total} shown`}
             </div>
           </div>
         </div>
 
-        {/* Table */}
+        {/* Table (same container styling) */}
         <div className="overflow-hidden rounded-2xl bg-white shadow-md border border-gray-200">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-700">

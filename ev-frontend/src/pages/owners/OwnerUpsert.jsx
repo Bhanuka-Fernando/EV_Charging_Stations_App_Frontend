@@ -22,8 +22,12 @@ export default function OwnerUpsert() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(isEdit);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } =
-    useForm({ resolver: zodResolver(isEdit ? editSchema : createSchema) });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm({ resolver: zodResolver(isEdit ? editSchema : createSchema) });
 
   useEffect(() => {
     if (!isEdit) return;
@@ -39,18 +43,24 @@ export default function OwnerUpsert() {
         });
       } catch (e) {
         toast.error(e.message || "Failed to load owner");
-      } finally { setLoading(false); }
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [isEdit, nic, reset]);
 
   const onSubmit = async (v) => {
     try {
       if (isEdit) {
-        await ownersApi.update(nic, { fullName: v.fullName, email: v.email, phone: v.phone });
-        toast.success("Owner updated");
+        await ownersApi.update(nic, {
+          fullName: v.fullName,
+          email: v.email,
+          phone: v.phone,
+        });
+        toast.success("Owner updated successfully!");
       } else {
         await ownersApi.create(v);
-        toast.success("Owner created");
+        toast.success("Owner created successfully!");
       }
       navigate("/owners", { replace: true });
     } catch (e) {
@@ -59,61 +69,118 @@ export default function OwnerUpsert() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-gray-50 flex items-center justify-center px-4 py-10">
       <Toaster />
-      <div className="max-w-2xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">
-          {isEdit ? `Edit Owner — ${nic}` : "Create EV Owner"}
-        </h1>
+      <div className="w-full max-w-2xl rounded-3xl bg-white/80 backdrop-blur-lg shadow-xl border border-gray-200 p-8 transition-all hover:shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-center flex-col mb-8">
+          <div className="w-14 h-14 flex items-center justify-center rounded-full bg-emerald-100 mb-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7 text-emerald-700"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.8}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 11c0 .828-.336 1.578-.879 2.121A3 3 0 1112 11zm0 0a3 3 0 010-6 3 3 0 010 6zm0 0v8m0-8a5 5 0 00-5 5m10 0a5 5 0 00-5-5"
+              />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
+            {isEdit ? "Edit EV Owner" : "Create EV Owner"}
+          </h1>
+          <p className="text-gray-500 text-sm mt-2">
+            {isEdit
+              ? "Update owner details and contact information."
+              : "Fill in the EV owner's registration details below."}
+          </p>
+        </div>
 
-        <form className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 space-y-4" onSubmit={handleSubmit(onSubmit)}>
+        {/* Form */}
+        <form
+          className="space-y-5 transition-all"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           {!isEdit && (
-            <div>
-              <label className="text-sm font-medium">NIC</label>
-              <input className="mt-1 w-full rounded-lg border px-3 py-2" disabled={loading} {...register("nic")} />
-              {errors.nic && <p className="text-sm text-red-600">{errors.nic.message}</p>}
-            </div>
+            <InputField
+              label="NIC"
+              placeholder="Enter NIC"
+              error={errors.nic?.message}
+              disabled={loading}
+              {...register("nic")}
+            />
           )}
-
-          <div>
-            <label className="text-sm font-medium">Full name</label>
-            <input className="mt-1 w-full rounded-lg border px-3 py-2" disabled={loading} {...register("fullName")} />
-            {errors.fullName && <p className="text-sm text-red-600">{errors.fullName.message}</p>}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Email</label>
-            <input className="mt-1 w-full rounded-lg border px-3 py-2" disabled={loading} {...register("email")} />
-            {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Phone</label>
-            <input className="mt-1 w-full rounded-lg border px-3 py-2" disabled={loading} {...register("phone")} />
-            {errors.phone && <p className="text-sm text-red-600">{errors.phone.message}</p>}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Password</label>
-            <input
+          <InputField
+            label="Full Name"
+            placeholder="Enter full name"
+            error={errors.fullName?.message}
+            disabled={loading}
+            {...register("fullName")}
+          />
+          <InputField
+            label="Email"
+            type="email"
+            placeholder="example@email.com"
+            error={errors.email?.message}
+            disabled={loading}
+            {...register("email")}
+          />
+          <InputField
+            label="Phone"
+            placeholder="07XXXXXXXX"
+            error={errors.phone?.message}
+            disabled={loading}
+            {...register("phone")}
+          />
+          <InputField
+            label="Password"
             type="password"
-            className="mt-1 w-full rounded-lg border px-3 py-2"
+            placeholder="Enter password"
+            error={errors.password?.message}
             disabled={loading}
             {...register("password")}
-            />
-            {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
-          </div>
+          />
 
-          <div className="flex gap-3 pt-2">
-            <button className="rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white px-4 py-2" disabled={isSubmitting || loading}>
-              {isSubmitting ? "Saving..." : "Save"}
-            </button>
-            <button type="button" onClick={() => history.back()} className="rounded-xl border px-4 py-2">
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => history.back()}
+              className="rounded-xl border border-gray-300 px-5 py-2.5 text-gray-700 hover:bg-gray-100 transition"
+            >
               Cancel
+            </button>
+            <button
+              className="rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-6 py-2.5 font-medium transition shadow-md disabled:opacity-60"
+              disabled={isSubmitting || loading}
+            >
+              {isSubmitting ? "Saving..." : isEdit ? "Update" : "Save"}
             </button>
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+/* -------------------- Reusable Input Component -------------------- */
+function InputField({ label, error, ...props }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <input
+        {...props}
+        className={`w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-400 transition ${
+          props.disabled ? "bg-gray-50" : ""
+        }`}
+      />
+      {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
     </div>
   );
 }

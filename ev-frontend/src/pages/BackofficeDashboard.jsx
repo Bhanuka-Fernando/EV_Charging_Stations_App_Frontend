@@ -233,9 +233,9 @@ export default function BackofficeDashboard() {
               <ActionCard title="Create Web User" description="Backoffice or Station Operator" to="/register" />
               <ActionCard title="Register New Station" description="Location, type, slots" to="/stations/new" />
               <ActionCard title="Create EV Owner" description="Register by NIC" to="/owners/new" />
-              <ActionCard title="Create Booking" description="Server rules apply" to="/bookings/new" />
+              <ActionCard title="View Booking" description="Server rules apply" to="/bookings" />
               <ActionCard title="Search" description="NIC / Owner / Station / Booking" to="/owners" />
-              <ActionCard title="Audit & Logs" description="Recent approvals & updates" to="/audit" />
+              <ActionCard title="View Users" description="Recent approvals & updates" to="/users" />
             </div>
           </div>
 
